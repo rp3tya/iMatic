@@ -31,8 +31,8 @@ class EthernetRelay(object):
         self._host = host
         self._port = port
         self._timeout = timeout
-        self._relays = [False] * (8 if board_type == CHANNEL_8 else 16)
         self._commands = CHANNEL_8_COMMANDS if (board_type == CHANNEL_8) else CHANNEL_16_COMMANDS
+        self._relays = [None] * (8 if board_type == CHANNEL_8 else 16)
         # get current state
         self.state()
 
@@ -142,20 +142,24 @@ class EthernetRelay(object):
     def control(self, cmdList):
         # type: (str) -> None
         resp = []
-        # send command(s)
-        sock = socket.create_connection((self._host, self._port), self._timeout)
-        for cmd in cmdList:
-            sock.send(binascii.a2b_hex(cmd))
-            resp = sock.recv(8)
-        sock.close()
-        # parse response
-        state_bits_str = ""
-        if (len(resp) > 2):
-            state_bits_str = "{:08b}".format(resp[len(resp)-2]) + state_bits_str
-        if (len(resp) > 4):
-            state_bits_str = "{:08b}".format(resp[len(resp)-3]) + state_bits_str
-        state_bits_str = state_bits_str[::-1]
-        # update current relay states
-        for ri in range(len(self._relays)):
-            self._relays[ri] = (state_bits_str[ri] == '1')
+        try:
+            # send command(s)
+            sock = socket.create_connection((self._host, self._port), self._timeout)
+            for cmd in cmdList:
+                sock.send(binascii.a2b_hex(cmd))
+                resp = sock.recv(8)
+            sock.close()
+            # parse response
+            state_bits_str = ""
+            if (len(resp) > 2):
+                state_bits_str = "{:08b}".format(resp[len(resp)-2]) + state_bits_str
+            if (len(resp) > 4):
+                state_bits_str = "{:08b}".format(resp[len(resp)-3]) + state_bits_str
+            state_bits_str = state_bits_str[::-1]
+            # update current relay states
+            for ri in range(len(self._relays)):
+                self._relays[ri] = (state_bits_str[ri] == '1')
+        except:
+            for ri in range(len(self._relays)):
+                self._relays[ri] = None
 

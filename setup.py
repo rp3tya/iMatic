@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="iMatic",
-    version="0.0.1",
+    version="0.2",
     author="rp3tya",
     author_email="rpetya@hotmail.com",
     description="iMatic client library for 8/16 channel relay board controllers by SainSmart",
